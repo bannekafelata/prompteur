@@ -1,311 +1,696 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Prompteur (pro)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Prompteur (pro)</title>
 
-<style>
-:root{
-  --bg:#000;
-  --fg:#cfcfcf;
-  --fgSoft:#b8b8b8;
-  --panel:#111;
-  --border:#2a2a2a;
-  --accent:#7a7a7a;
-  --muted:#a8a8a8;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--fg);
-}
-.app{
-  min-height:100vh;
-  display:grid;
-  grid-template-rows:auto 1fr;
-}
-.controls{
-  background:rgba(17,17,17,0.96);
-  border-bottom:1px solid var(--border);
-  padding:12px;
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  align-items:flex-end;
-}
-.group{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  min-width:220px;
-}
-label{font-size:12px;color:#bdbdbd}
-textarea{
-  width:420px;
-  max-width:92vw;
-  height:140px;
-  background:#0a0a0a;
-  color:var(--fg);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px;
-  resize:vertical;
-  outline:none;
-}
-textarea:focus{border-color:#444}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{
-  background:#1a1a1a;
-  color:var(--fg);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px 12px;
-  cursor:pointer;
-}
-button:hover{border-color:#444}
-button.primary{background:#232323;border-color:#444}
-button.danger{background:#1a1111;border-color:#4a2a2a}
-button.good{background:#132013;border-color:#2a4a2a}
-.toggle{
-  display:inline-flex;
-  border:1px solid var(--border);
-  border-radius:10px;
-  overflow:hidden;
-}
-.toggle button{
-  border:0;
-  border-right:1px solid var(--border);
-  border-radius:0;
-  background:#151515;
-}
-.toggle button:last-child{border-right:0}
-.toggle button.active{background:#2a2a2a}
-.sliderWrap{
-  width:360px;
-  max-width:92vw;
-  background:#0a0a0a;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px 12px;
-}
-input[type="range"]{width:100%;accent-color:var(--accent)}
-.meta{
-  font-size:12px;
-  color:#bdbdbd;
-  display:flex;
-  justify-content:space-between;
-  margin:6px 0;
-}
-.stageWrap{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:14px;
-}
-.stage{
-  position:relative;
-  background:#000;
-  border-radius:14px;
-  overflow:hidden;
-  width:min(92vw,560px);
-  height:min(80vh,980px);
-}
-.viewport{
-  position:absolute;
-  inset:0;
-  overflow:hidden;
-}
-.content{
-  position:absolute;
-  left:0;
-  top:0;
-  width:100%;
-  padding:0 var(--pad);
-  white-space:pre-wrap;
-  text-align:left;
-  line-height:var(--lh);
-  font-size:var(--fs);
-  color:var(--textColor);
-}
-.mirror .content{transform:scaleX(-1)}
-.overlay{
-  position:absolute;
-  inset:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:rgba(0,0,0,0.55);
-}
-.overlay.show{display:flex}
-.countNum{
-  font-size:clamp(64px,12vw,160px);
-  font-weight:700;
-}
-.hud{
-  position:absolute;
-  bottom:12px;
-  left:12px;
-  font-size:12px;
-  opacity:.7;
-}
-:fullscreen .controls{display:none}
-</style>
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#cfcfcf;
+      --fgSoft:#b8b8b8;
+      --panel:#111;
+      --border:#2a2a2a;
+      --accent:#7a7a7a;
+      --muted:#a8a8a8;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+    }
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-rows:auto 1fr;
+    }
+
+    .controls{
+      background: rgba(17,17,17,0.96);
+      border-bottom:1px solid var(--border);
+      padding:12px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    .group{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width: 220px;
+    }
+    label{font-size:12px;color:#bdbdbd}
+
+    textarea{
+      width: 420px;
+      max-width: 92vw;
+      height: 140px;
+      background:#0a0a0a;
+      color:var(--fg);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px;
+      resize:vertical;
+      outline:none;
+    }
+    textarea:focus{ border-color:#444; }
+
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    button{
+      background:#1a1a1a;
+      color:var(--fg);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      cursor:pointer;
+      user-select:none;
+      white-space:nowrap;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    button:hover{ border-color:#444; }
+    button.primary{ background:#232323; border-color:#444; }
+    button.danger{ background:#1a1111; border-color:#4a2a2a; }
+    button.good{ background:#132013; border-color:#2a4a2a; }
+
+    .toggle{
+      display:inline-flex;
+      border:1px solid var(--border);
+      border-radius:10px;
+      overflow:hidden;
+    }
+    .toggle button{
+      border:0;
+      border-right:1px solid var(--border);
+      border-radius:0;
+      padding:10px 12px;
+      background:#151515;
+    }
+    .toggle button:last-child{ border-right:0; }
+    .toggle button.active{ background:#2a2a2a; }
+
+    .sliderWrap{
+      width: 360px;
+      max-width: 92vw;
+      background:#0a0a0a;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+    }
+    input[type="range"]{ width:100%; accent-color: var(--accent); }
+    .meta{
+      font-size:12px;
+      color:#bdbdbd;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin: 6px 0;
+    }
+
+    /* Stage */
+    .stageWrap{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding: 14px;
+    }
+    .stage{
+      position:relative;
+      background:#000;
+      border:1px solid #111;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow: 0 0 0 1px #0a0a0a inset;
+    }
+    .stage.portrait{ width:min(92vw, 560px); height:min(80vh, 980px); }
+    .stage.landscape{ width:min(92vw, 1100px); height:min(66vh, 560px); }
+
+    .viewport{
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+    }
+
+    .content{
+      position:absolute;
+      left:0;
+      top:0;
+      width:100%;
+      padding: 0 var(--pad);
+      transform-origin:center;
+      will-change: transform, top;
+      white-space:pre-wrap;
+      text-align:left;
+      line-height: var(--lh);
+      font-size: var(--fs);
+      color: var(--textColor);
+    }
+    .mirror .content{ transform: scaleX(-1); }
+
+    .hud{
+      position:absolute;
+      left:12px;
+      bottom:12px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      font-size:12px;
+      color:#c8c8c8;
+      z-index:5;
+    }
+    .pill{
+      background: rgba(0,0,0,0.6);
+      border:1px solid #1a1a1a;
+      padding:6px 8px;
+      border-radius:999px;
+    }
+    .hint{
+      position:absolute;
+      right:12px;
+      bottom:12px;
+      font-size:12px;
+      color:#8a8a8a;
+      background: rgba(0,0,0,0.55);
+      padding:6px 8px;
+      border:1px solid #1a1a1a;
+      border-radius:10px;
+      max-width: 70%;
+      text-align:right;
+      z-index:5;
+    }
+
+    /* Countdown overlay */
+    .overlay{
+      position:absolute;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background: rgba(0,0,0,0.55);
+      z-index:10;
+      user-select:none;
+    }
+    .overlay.show{ display:flex; }
+    .countNum{
+      font-size: clamp(64px, 12vw, 160px);
+      font-weight: 700;
+      color: #e0e0e0;
+      letter-spacing: 0.03em;
+    }
+
+    /* Desktop fullscreen hide controls */
+    :fullscreen .controls{ display:none; }
+    :-webkit-full-screen .controls{ display:none; }
+
+    /* iPhone fallback "vrai" plein écran visuel */
+    .app.kiosk .controls{ display:none; }
+    .app.kiosk{
+      height:100vh;
+      overflow:hidden;
+    }
+    .app.kiosk .stage{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100vh;
+      border-radius:0;
+      border:0;
+    }
+    .app.kiosk .stageWrap{
+      padding:0;
+    }
+  </style>
 </head>
 
 <body>
+  <div id="app" class="app">
+    <div class="controls">
+      <div class="group">
+        <label for="text">Ton texte (colle ici)</label>
+        <textarea id="text" placeholder="Colle ton texte ici…"></textarea>
+      </div>
 
-<div class="app">
+      <div class="group">
+        <label>Vitesse</label>
+        <div class="sliderWrap">
+          <div class="meta"><span id="speedLabel">Vitesse: 5</span><span id="pxLabel">≈ 0 px/s</span></div>
+          <input id="speed" type="range" min="1" max="12" step="1" value="5" />
+        </div>
+      </div>
 
-<div class="controls">
-<div class="group">
-<label>Ton texte</label>
-<textarea id="text" placeholder="Colle ton texte ici…"></textarea>
-</div>
+      <div class="group">
+        <label>Texte</label>
+        <div class="sliderWrap">
+          <div class="meta"><span>Taille</span><span id="fsLabel">40px</span></div>
+          <input id="fontSize" type="range" min="18" max="90" step="1" value="40" />
+          <div class="meta"><span>Interligne</span><span id="lhLabel">1.35</span></div>
+          <input id="lineHeight" type="range" min="1.05" max="1.80" step="0.05" value="1.35" />
+          <div class="meta"><span>Marge</span><span id="padLabel">48px</span></div>
+          <input id="padding" type="range" min="12" max="120" step="2" value="48" />
+        </div>
+      </div>
 
-<div class="group">
-<label>Vitesse</label>
-<input id="speed" type="range" min="1" max="12" value="5">
-</div>
+      <div class="group">
+        <label>Affichage</label>
+        <div class="row">
+          <div class="toggle" role="group" aria-label="Orientation">
+            <button id="btnPortrait" class="active" type="button">Portrait</button>
+            <button id="btnLandscape" type="button">Paysage</button>
+          </div>
+          <div class="toggle" role="group" aria-label="Miroir">
+            <button id="btnMirrorOn" class="active" type="button">Miroir ON</button>
+            <button id="btnMirrorOff" type="button">Miroir OFF</button>
+          </div>
+          <div class="toggle" role="group" aria-label="Contraste">
+            <button id="btnSoftOn" class="active" type="button">Doux</button>
+            <button id="btnSoftOff" type="button">Normal</button>
+          </div>
+        </div>
+      </div>
 
-<div class="group">
-<label>Contrôles</label>
-<button id="btnStart" class="primary">▶ Lancer</button>
-<button id="btnPause">⏸ Pause</button>
-<button id="btnStop" class="danger">⏹ Stop</button>
-<button id="btnFullscreen" class="good">⛶ Plein écran</button>
-</div>
-</div>
+      <div class="group">
+        <label>Départ & options</label>
+        <div class="row">
+          <div class="toggle" role="group" aria-label="Position de départ">
+            <button id="btnStartBottom" class="active" type="button">En bas</button>
+            <button id="btnStartTop" type="button">Au début</button>
+          </div>
+        </div>
 
-<div class="stageWrap">
-<div id="stage" class="stage mirror"
-style="--fs:40px;--lh:1.35;--pad:48px;--textColor:var(--fgSoft)">
-<div class="viewport">
-<div id="content" class="content"></div>
-</div>
+        <div class="row" style="margin-top:8px;">
+          <label style="display:flex;gap:8px;align-items:center;margin:0;font-size:12px;color:#bdbdbd;">
+            <input id="chkLoop" type="checkbox" />
+            <span>Mode boucle</span>
+          </label>
 
-<div id="overlay" class="overlay">
-<div id="countNum" class="countNum">3</div>
-</div>
+          <label style="display:flex;gap:8px;align-items:center;margin:0;font-size:12px;color:#bdbdbd;">
+            <input id="chkCountdown" type="checkbox" checked />
+            <span>Compte à rebours</span>
+          </label>
 
-<div class="hud">Espace = Pause • Entrée = Lancer</div>
-</div>
-</div>
-</div>
+          <span style="font-size:12px;color:#bdbdbd;">Durée:</span>
+          <input id="countdownSec" type="number" min="1" max="10" value="3"
+                 style="width:78px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:#0a0a0a;color:var(--fg);" />
+          <span style="font-size:12px;color:#bdbdbd;">s</span>
+        </div>
+      </div>
 
-<script>
+      <div class="group">
+        <label>Contrôles</label>
+        <div class="row">
+          <button id="btnStart" class="primary" type="button">▶ Lancer</button>
+          <button id="btnPause" type="button">⏸ Pause</button>
+          <button id="btnStop" class="danger" type="button">⏹ Stop</button>
+          <button id="btnFullscreen" class="good" type="button">⛶ Plein écran</button>
+        </div>
+      </div>
+    </div>
 
-const elText=document.getElementById("text");
-const elSpeed=document.getElementById("speed");
-const content=document.getElementById("content");
-const stage=document.getElementById("stage");
+    <div class="stageWrap">
+      <div id="stage" class="stage portrait mirror"
+           style="--fs:40px; --lh:1.35; --pad:48px; --textColor: var(--fgSoft);">
+        <div class="viewport">
+          <div id="content" class="content"></div>
+        </div>
 
-const btnStart=document.getElementById("btnStart");
-const btnPause=document.getElementById("btnPause");
-const btnStop=document.getElementById("btnStop");
-const btnFullscreen=document.getElementById("btnFullscreen");
+        <div id="overlay" class="overlay" aria-hidden="true">
+          <div id="countNum" class="countNum">3</div>
+        </div>
 
-let running=false;
-let paused=false;
-let y=0;
-let lastTs=null;
+        <div class="hud">
+          <span class="pill" id="statePill">⏹ Stop</span>
+          <span class="pill" id="infoPill">0 px/s</span>
+        </div>
 
-function speedPxPerSecond(){
-  const v=Number(elSpeed.value);
-  return 15+Math.pow(v,1.7)*14;
-}
+        <div class="hint">
+          Espace = Pause/Reprendre • Entrée = Lancer • Échap = Stop • ↑ ↓ = Vitesse • + - = Taille • F = Plein écran
+          <br>Dans le champ texte : Espace écrit normalement • Ctrl/Cmd + Entrée = Lancer
+        </div>
+      </div>
+    </div>
+  </div>
 
-function resetPosition(){
-  y=stage.clientHeight-60;
-  content.style.top=y+"px";
-}
+  <script>
+    const app = document.getElementById('app');
 
-function loop(ts){
-  if(!running){lastTs=null;return;}
-  if(paused){lastTs=ts;requestAnimationFrame(loop);return;}
+    const elText = document.getElementById('text');
 
-  if(lastTs==null)lastTs=ts;
-  const dt=(ts-lastTs)/1000;
-  lastTs=ts;
+    const elSpeed = document.getElementById('speed');
+    const elSpeedLabel = document.getElementById('speedLabel');
+    const elPxLabel = document.getElementById('pxLabel');
 
-  y-=speedPxPerSecond()*dt;
-  content.style.top=y+"px";
+    const elFontSize = document.getElementById('fontSize');
+    const elLineHeight = document.getElementById('lineHeight');
+    const elPadding = document.getElementById('padding');
 
-  if(y<-content.scrollHeight-40){
-    running=false;
-  }else{
-    requestAnimationFrame(loop);
-  }
-}
+    const fsLabel = document.getElementById('fsLabel');
+    const lhLabel = document.getElementById('lhLabel');
+    const padLabel = document.getElementById('padLabel');
 
-function start(){
-  content.textContent=elText.value||"Colle ton texte.";
-  running=true;
-  paused=false;
-  resetPosition();
-  requestAnimationFrame(loop);
-}
+    const stage = document.getElementById('stage');
+    const content = document.getElementById('content');
 
-function togglePause(){
-  if(running)paused=!paused;
-}
+    const btnStart = document.getElementById('btnStart');
+    const btnPause = document.getElementById('btnPause');
+    const btnStop  = document.getElementById('btnStop');
+    const btnFullscreen = document.getElementById('btnFullscreen');
 
-function stop(){
-  running=false;
-  paused=false;
-  resetPosition();
-}
+    const btnPortrait  = document.getElementById('btnPortrait');
+    const btnLandscape = document.getElementById('btnLandscape');
 
-async function toggleFullscreen(){
-  if(!document.fullscreenElement){
-    await stage.requestFullscreen();
-  }else{
-    await document.exitFullscreen();
-  }
-}
+    const btnMirrorOn  = document.getElementById('btnMirrorOn');
+    const btnMirrorOff = document.getElementById('btnMirrorOff');
 
-btnStart.onclick=start;
-btnPause.onclick=togglePause;
-btnStop.onclick=stop;
-btnFullscreen.onclick=toggleFullscreen;
+    const btnSoftOn  = document.getElementById('btnSoftOn');
+    const btnSoftOff = document.getElementById('btnSoftOff');
 
-elSpeed.addEventListener("input",()=>{});
+    const btnStartBottom = document.getElementById('btnStartBottom');
+    const btnStartTop = document.getElementById('btnStartTop');
 
+    const chkLoop = document.getElementById('chkLoop');
+    const chkCountdown = document.getElementById('chkCountdown');
+    const countdownSec = document.getElementById('countdownSec');
 
-// ✅ CORRECTION CLAVIER
-document.addEventListener("keydown",(e)=>{
-  const tag=e.target.tagName.toLowerCase();
-  const isTypingField=tag==="textarea"||tag==="input"||e.target.isContentEditable;
+    const overlay = document.getElementById('overlay');
+    const countNum = document.getElementById('countNum');
 
-  if(isTypingField){
-    // Lancer avec Ctrl/Cmd + Entrée même en écrivant
-    if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){
-      e.preventDefault();
-      start();
+    const statePill = document.getElementById('statePill');
+    const infoPill = document.getElementById('infoPill');
+
+    // State
+    let running = false;
+    let paused = false;
+    let y = 0;
+    let lastTs = null;
+    let startMode = 'bottom'; // 'bottom' | 'top'
+    let softContrast = true;
+    let countdownTimer = null;
+    let inCountdown = false;
+
+    // Speed mapping
+    function speedPxPerSecond(){
+      const v = Number(elSpeed.value); // 1..12
+      return 15 + Math.pow(v, 1.7) * 14; // ~29 .. 300 px/s
     }
-    return; // laisse espace écrire normalement
-  }
 
-  if(e.code==="Space"){
-    e.preventDefault();
-    togglePause();
-  }
-  if(e.key==="Enter"){
-    e.preventDefault();
-    start();
-  }
-  if(e.key==="Escape"){
-    stop();
-  }
-  if(e.key.toLowerCase()==="f"){
-    toggleFullscreen();
-  }
-});
+    function viewportHeight(){ return stage.clientHeight; }
+    function contentHeight(){ return content.scrollHeight; }
+    function endY(){ return -contentHeight() - 80; }
 
-resetPosition();
+    function updateHUD(){
+      const px = Math.round(speedPxPerSecond());
+      infoPill.textContent = `${px} px/s`;
+      elPxLabel.textContent = `≈ ${px} px/s`;
 
-</script>
+      if(inCountdown) statePill.textContent = '⏳ Départ…';
+      else if(!running) statePill.textContent = '⏹ Stop';
+      else if(paused) statePill.textContent = '⏸ Pause';
+      else statePill.textContent = '▶ Lecture';
+    }
+
+    function setSpeedLabel(){
+      elSpeedLabel.textContent = `Vitesse: ${elSpeed.value}`;
+      updateHUD();
+    }
+
+    function applyTypography(){
+      stage.style.setProperty('--fs', `${elFontSize.value}px`);
+      stage.style.setProperty('--lh', `${elLineHeight.value}`);
+      stage.style.setProperty('--pad', `${elPadding.value}px`);
+      fsLabel.textContent = `${elFontSize.value}px`;
+      lhLabel.textContent = `${Number(elLineHeight.value).toFixed(2)}`;
+      padLabel.textContent = `${elPadding.value}px`;
+      resetPosition();
+    }
+
+    function applyContrast(){
+      stage.style.setProperty('--textColor', softContrast ? 'var(--fgSoft)' : 'var(--fg)');
+      btnSoftOn.classList.toggle('active', softContrast);
+      btnSoftOff.classList.toggle('active', !softContrast);
+    }
+
+    function setContentFromTextarea(){
+      const t = elText.value.trim();
+      content.textContent = t.length ? t : "Colle ton texte en haut, puis clique sur Lancer.";
+      resetPosition();
+    }
+
+    function resetPosition(){
+      y = (startMode === 'bottom') ? (viewportHeight() - 60) : 40;
+      applyPosition();
+    }
+
+    function applyPosition(){
+      content.style.top = `${y}px`;
+    }
+
+    function loop(ts){
+      if(!running){ lastTs = null; return; }
+      if(paused){ lastTs = ts; requestAnimationFrame(loop); return; }
+
+      if(lastTs == null) lastTs = ts;
+      const dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+
+      y -= speedPxPerSecond() * dt;
+      applyPosition();
+
+      if(y <= endY()){
+        if(chkLoop.checked){
+          resetPosition();
+          lastTs = null;
+          requestAnimationFrame(loop);
+          return;
+        } else {
+          running = false;
+          paused = false;
+          updateHUD();
+          return;
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+
+    function clearCountdown(){
+      if(countdownTimer){
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      inCountdown = false;
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    function startWithOptionalCountdown(){
+      if(!elText.value.trim()) setContentFromTextarea();
+      if(running && !paused) return;
+
+      paused = false;
+
+      const doCountdown = chkCountdown.checked;
+      const sec = Math.max(1, Math.min(10, Number(countdownSec.value) || 3));
+
+      if(doCountdown){
+        clearCountdown();
+        inCountdown = true;
+        updateHUD();
+
+        overlay.classList.add('show');
+        overlay.setAttribute('aria-hidden', 'false');
+
+        let n = sec;
+        countNum.textContent = n;
+
+        countdownTimer = setInterval(() => {
+          n -= 1;
+          if(n <= 0){
+            clearCountdown();
+            running = true;
+            paused = false;
+            lastTs = null;
+            updateHUD();
+            requestAnimationFrame(loop);
+          } else {
+            countNum.textContent = n;
+          }
+        }, 1000);
+
+      } else {
+        running = true;
+        paused = false;
+        lastTs = null;
+        updateHUD();
+        requestAnimationFrame(loop);
+      }
+    }
+
+    function togglePause(){
+      if(inCountdown) return;
+      if(running){
+        paused = !paused;
+        updateHUD();
+      } else {
+        startWithOptionalCountdown();
+      }
+    }
+
+    function stop(){
+      clearCountdown();
+      running = false;
+      paused = false;
+      lastTs = null;
+      resetPosition();
+      updateHUD();
+    }
+
+    function setOrientation(mode){
+      stage.classList.toggle('portrait', mode === 'portrait');
+      stage.classList.toggle('landscape', mode === 'landscape');
+      btnPortrait.classList.toggle('active', mode === 'portrait');
+      btnLandscape.classList.toggle('active', mode === 'landscape');
+      resetPosition();
+    }
+
+    function setMirror(on){
+      stage.classList.toggle('mirror', on);
+      btnMirrorOn.classList.toggle('active', on);
+      btnMirrorOff.classList.toggle('active', !on);
+    }
+
+    function setStartMode(mode){
+      startMode = mode;
+      btnStartBottom.classList.toggle('active', mode === 'bottom');
+      btnStartTop.classList.toggle('active', mode === 'top');
+      resetPosition();
+    }
+
+    // ✅ Plein écran: vrai Fullscreen si dispo, sinon fallback iPhone (kiosk)
+    async function toggleFullscreen(){
+      const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+
+      // Desktop / Android (Fullscreen API)
+      if(stage.requestFullscreen || stage.webkitRequestFullscreen){
+        try{
+          if(!isFs){
+            if(stage.requestFullscreen) await stage.requestFullscreen();
+            else stage.webkitRequestFullscreen();
+          }else{
+            if(document.exitFullscreen) await document.exitFullscreen();
+            else document.webkitExitFullscreen();
+          }
+          return;
+        }catch(e){}
+      }
+
+      // iPhone fallback
+      app.classList.toggle("kiosk");
+
+      // petit scroll pour pousser Safari à cacher la barre
+      setTimeout(()=>window.scrollTo(0,1), 50);
+    }
+
+    // Sur mobile, pointerdown est plus fiable que click
+    function bindFast(el, fn){
+      el.addEventListener('pointerdown', (e)=>{ e.preventDefault(); fn(); }, {passive:false});
+      el.addEventListener('click', (e)=>{ e.preventDefault(); fn(); });
+    }
+
+    // Events UI
+    elSpeed.addEventListener('input', setSpeedLabel);
+    elText.addEventListener('input', setContentFromTextarea);
+
+    elFontSize.addEventListener('input', applyTypography);
+    elLineHeight.addEventListener('input', applyTypography);
+    elPadding.addEventListener('input', applyTypography);
+
+    bindFast(btnStart, startWithOptionalCountdown);
+    bindFast(btnPause, togglePause);
+    bindFast(btnStop, stop);
+    bindFast(btnFullscreen, toggleFullscreen);
+
+    bindFast(btnPortrait, () => setOrientation('portrait'));
+    bindFast(btnLandscape, () => setOrientation('landscape'));
+
+    bindFast(btnMirrorOn, () => setMirror(true));
+    bindFast(btnMirrorOff, () => setMirror(false));
+
+    bindFast(btnSoftOn, () => { softContrast = true; applyContrast(); });
+    bindFast(btnSoftOff, () => { softContrast = false; applyContrast(); });
+
+    bindFast(btnStartBottom, () => setStartMode('bottom'));
+    bindFast(btnStartTop, () => setStartMode('top'));
+
+    window.addEventListener('resize', () => resetPosition());
+
+    // Keyboard shortcuts (ne pas casser la saisie dans le textarea)
+    document.addEventListener('keydown', (e) => {
+      const key = e.key;
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      const isTypingField = tag === "textarea" || tag === "input" || (e.target && e.target.isContentEditable);
+
+      // Dans un champ : on laisse Espace écrire normalement
+      if (isTypingField) {
+        // Ctrl/Cmd + Entrée pour lancer
+        if ((e.ctrlKey || e.metaKey) && key === 'Enter') {
+          e.preventDefault();
+          startWithOptionalCountdown();
+        }
+        return;
+      }
+
+      if(e.code === 'Space'){
+        e.preventDefault();
+        togglePause();
+      }
+      if(key === 'Enter'){
+        e.preventDefault();
+        startWithOptionalCountdown();
+      }
+      if(key === 'Escape'){
+        e.preventDefault();
+        stop();
+      }
+      if(key === 'ArrowUp'){
+        e.preventDefault();
+        elSpeed.value = Math.min(12, Number(elSpeed.value) + 1);
+        setSpeedLabel();
+      }
+      if(key === 'ArrowDown'){
+        e.preventDefault();
+        elSpeed.value = Math.max(1, Number(elSpeed.value) - 1);
+        setSpeedLabel();
+      }
+      if(key === '+' || key === '='){
+        e.preventDefault();
+        elFontSize.value = Math.min(90, Number(elFontSize.value) + 1);
+        applyTypography();
+      }
+      if(key === '-' || key === '_'){
+        e.preventDefault();
+        elFontSize.value = Math.max(18, Number(elFontSize.value) - 1);
+        applyTypography();
+      }
+      if(key.toLowerCase() === 'f'){
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    // Init
+    setSpeedLabel();
+    applyTypography();
+    setContentFromTextarea();
+    setMirror(true);
+    setStartMode('bottom');
+    softContrast = true;
+    applyContrast();
+    updateHUD();
+  </script>
 </body>
 </html>
