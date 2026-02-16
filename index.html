@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prompteur (pro)</title>
+
+<style>
+:root{
+  --bg:#000;
+  --fg:#cfcfcf;
+  --fgSoft:#b8b8b8;
+  --panel:#111;
+  --border:#2a2a2a;
+  --accent:#7a7a7a;
+  --muted:#a8a8a8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--fg);
+}
+.app{
+  min-height:100vh;
+  display:grid;
+  grid-template-rows:auto 1fr;
+}
+.controls{
+  background:rgba(17,17,17,0.96);
+  border-bottom:1px solid var(--border);
+  padding:12px;
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:flex-end;
+}
+.group{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:220px;
+}
+label{font-size:12px;color:#bdbdbd}
+textarea{
+  width:420px;
+  max-width:92vw;
+  height:140px;
+  background:#0a0a0a;
+  color:var(--fg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+  resize:vertical;
+  outline:none;
+}
+textarea:focus{border-color:#444}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{
+  background:#1a1a1a;
+  color:var(--fg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+  cursor:pointer;
+}
+button:hover{border-color:#444}
+button.primary{background:#232323;border-color:#444}
+button.danger{background:#1a1111;border-color:#4a2a2a}
+button.good{background:#132013;border-color:#2a4a2a}
+.toggle{
+  display:inline-flex;
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+}
+.toggle button{
+  border:0;
+  border-right:1px solid var(--border);
+  border-radius:0;
+  background:#151515;
+}
+.toggle button:last-child{border-right:0}
+.toggle button.active{background:#2a2a2a}
+.sliderWrap{
+  width:360px;
+  max-width:92vw;
+  background:#0a0a0a;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+}
+input[type="range"]{width:100%;accent-color:var(--accent)}
+.meta{
+  font-size:12px;
+  color:#bdbdbd;
+  display:flex;
+  justify-content:space-between;
+  margin:6px 0;
+}
+.stageWrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:14px;
+}
+.stage{
+  position:relative;
+  background:#000;
+  border-radius:14px;
+  overflow:hidden;
+  width:min(92vw,560px);
+  height:min(80vh,980px);
+}
+.viewport{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+}
+.content{
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  padding:0 var(--pad);
+  white-space:pre-wrap;
+  text-align:left;
+  line-height:var(--lh);
+  font-size:var(--fs);
+  color:var(--textColor);
+}
+.mirror .content{transform:scaleX(-1)}
+.overlay{
+  position:absolute;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.55);
+}
+.overlay.show{display:flex}
+.countNum{
+  font-size:clamp(64px,12vw,160px);
+  font-weight:700;
+}
+.hud{
+  position:absolute;
+  bottom:12px;
+  left:12px;
+  font-size:12px;
+  opacity:.7;
+}
+:fullscreen .controls{display:none}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="controls">
+<div class="group">
+<label>Ton texte</label>
+<textarea id="text" placeholder="Colle ton texte ici…"></textarea>
+</div>
+
+<div class="group">
+<label>Vitesse</label>
+<input id="speed" type="range" min="1" max="12" value="5">
+</div>
+
+<div class="group">
+<label>Contrôles</label>
+<button id="btnStart" class="primary">▶ Lancer</button>
+<button id="btnPause">⏸ Pause</button>
+<button id="btnStop" class="danger">⏹ Stop</button>
+<button id="btnFullscreen" class="good">⛶ Plein écran</button>
+</div>
+</div>
+
+<div class="stageWrap">
+<div id="stage" class="stage mirror"
+style="--fs:40px;--lh:1.35;--pad:48px;--textColor:var(--fgSoft)">
+<div class="viewport">
+<div id="content" class="content"></div>
+</div>
+
+<div id="overlay" class="overlay">
+<div id="countNum" class="countNum">3</div>
+</div>
+
+<div class="hud">Espace = Pause • Entrée = Lancer</div>
+</div>
+</div>
+</div>
+
+<script>
+
+const elText=document.getElementById("text");
+const elSpeed=document.getElementById("speed");
+const content=document.getElementById("content");
+const stage=document.getElementById("stage");
+
+const btnStart=document.getElementById("btnStart");
+const btnPause=document.getElementById("btnPause");
+const btnStop=document.getElementById("btnStop");
+const btnFullscreen=document.getElementById("btnFullscreen");
+
+let running=false;
+let paused=false;
+let y=0;
+let lastTs=null;
+
+function speedPxPerSecond(){
+  const v=Number(elSpeed.value);
+  return 15+Math.pow(v,1.7)*14;
+}
+
+function resetPosition(){
+  y=stage.clientHeight-60;
+  content.style.top=y+"px";
+}
+
+function loop(ts){
+  if(!running){lastTs=null;return;}
+  if(paused){lastTs=ts;requestAnimationFrame(loop);return;}
+
+  if(lastTs==null)lastTs=ts;
+  const dt=(ts-lastTs)/1000;
+  lastTs=ts;
+
+  y-=speedPxPerSecond()*dt;
+  content.style.top=y+"px";
+
+  if(y<-content.scrollHeight-40){
+    running=false;
+  }else{
+    requestAnimationFrame(loop);
+  }
+}
+
+function start(){
+  content.textContent=elText.value||"Colle ton texte.";
+  running=true;
+  paused=false;
+  resetPosition();
+  requestAnimationFrame(loop);
+}
+
+function togglePause(){
+  if(running)paused=!paused;
+}
+
+function stop(){
+  running=false;
+  paused=false;
+  resetPosition();
+}
+
+async function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    await stage.requestFullscreen();
+  }else{
+    await document.exitFullscreen();
+  }
+}
+
+btnStart.onclick=start;
+btnPause.onclick=togglePause;
+btnStop.onclick=stop;
+btnFullscreen.onclick=toggleFullscreen;
+
+elSpeed.addEventListener("input",()=>{});
+
+
+// ✅ CORRECTION CLAVIER
+document.addEventListener("keydown",(e)=>{
+  const tag=e.target.tagName.toLowerCase();
+  const isTypingField=tag==="textarea"||tag==="input"||e.target.isContentEditable;
+
+  if(isTypingField){
+    // Lancer avec Ctrl/Cmd + Entrée même en écrivant
+    if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){
+      e.preventDefault();
+      start();
+    }
+    return; // laisse espace écrire normalement
+  }
+
+  if(e.code==="Space"){
+    e.preventDefault();
+    togglePause();
+  }
+  if(e.key==="Enter"){
+    e.preventDefault();
+    start();
+  }
+  if(e.key==="Escape"){
+    stop();
+  }
+  if(e.key.toLowerCase()==="f"){
+    toggleFullscreen();
+  }
+});
+
+resetPosition();
+
+</script>
+</body>
+</html>
